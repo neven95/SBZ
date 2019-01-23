@@ -1,0 +1,225 @@
+package rules
+
+//list any import classes here.
+import com.sbnz.doctor.model.Patient;
+import com.sbnz.doctor.model.Diagnosis;
+import com.sbnz.doctor.model.Symptom;
+import com.sbnz.doctor.model.Disease;
+import com.sbnz.doctor.services.DiseaseService;
+import com.sbnz.doctor.services.SymptomService;
+import com.sbnz.doctor.dto.SymptomDTO;
+import com.sbnz.doctor.utils.SymptomList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+
+//declare any global variables here
+
+
+
+rule "Prehlada"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 1"
+	salience 75
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue >= 4) from accumulate(
+				SymptomDTO( symCode == "CURNO" || symCode == "BOLUG" || symCode == "GLAVB" || symCode == "KIJAN" || symCode == "KASHA") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+				
+    then
+        //actions
+        double procena = 0;
+        if($sum == 5){
+        	procena = 3000;
+        }else{
+        	procena = $sum/5.0*100.0;
+        }
+		$s.getMostLikelyDisease().put("PREHL", procena);
+		update($s);
+end
+
+rule "Groznica"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 1"
+	salience 75
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue >= 4) from accumulate(
+				SymptomDTO( symCode == "CURNO" || symCode == "BOLUG" || symCode == "GLAVB" || symCode == "KIJAN" || symCode == "KASHA" || symCode == "DRHTI" || symCode == "TEM38") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+        double procena = 0;
+        if($sum == 7){
+        	procena = 3000;
+        }else{
+        	procena = $sum/7.0*100.0;
+        }
+		$s.getMostLikelyDisease().put("GROZN", procena);
+		update($s);
+end
+
+rule "Upala krajnika"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 1"
+	salience 75
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue >= 4) from accumulate(
+				SymptomDTO( symCode == "GUBAP" || symCode == "DRHTI" || symCode == "T4041" || symCode == "BOLOU" || symCode == "BOLUG" || symCode == "GLAVB" || symCode == "TIRED" || symCode == "ZHNOS") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+        double procena = 0;
+        if($sum == 8){
+        	procena = 3000;
+        }else{
+        	procena = $sum/8.0*100.0;
+        }
+		$s.getMostLikelyDisease().put("UPAKR", procena);
+		update($s);
+end
+
+rule "Sinusna infekcija"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 1"
+	salience 75
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue >= 4) from accumulate(
+				SymptomDTO( symCode == "CURNO" || symCode == "BOLUG" || symCode == "GLAVB" || symCode == "KIJAN" || symCode == "KASHA" || symCode == "DRHTI" || symCode == "TEM38" || symCode == "PRG60") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+        double procena = 0;
+        if($sum == 7){
+        	procena = 3000;
+        }else{
+        	procena = $sum/7.0*100.0;
+        }
+		$s.getMostLikelyDisease().put("SININ", procena);
+		update($s);
+end
+
+// Disease group 2
+rule "Dijabetes"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 2"
+	salience 50
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue == 4) from accumulate(
+				SymptomDTO( symCode == "CESTO" || symCode == "GUBTT" || symCode == "ZAMOR" || symCode == "MUPOV") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+		$s.getMostLikelyDisease().put("DIJBE", 5000.0);
+		update($s);
+end
+
+rule "Hipertenzija"
+	agenda-group "Diseases"
+	//agenda-group "Disease group 	2"
+	salience 50
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        Number ( $sum : intValue == 1) from accumulate(
+				SymptomDTO( symCode == "VISPR") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+		$s.getMostLikelyDisease().put("HIPTE", 5000.0);
+		update($s);
+end
+
+// Disease group 3
+rule "Hronicna bubrezna povreda"
+	agenda-group "Diseases"//agenda-group "Disease group 3"
+	salience 25
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        // obicni i specificni simptomi
+        Number ( $sum : intValue >= 2) from accumulate(
+				SymptomDTO( symCode == "ZAMOR" || symCode == "NOCTA" || symCode == "ONOZG" || symCode == "BOLGR" || symCode == "GUSHI") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				) and Number( $sum2: intValue >= 1 ) from accumulate(
+					SymptomDTO( symCode == "HIPT6" || symCode == "DIANW") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+        $s.getMostLikelyDisease().remove("AKBUB");
+		$s.getMostLikelyDisease().put("HRBUB", 13000.0);
+		update($s);
+end
+
+rule "Akutna bubrezna povreda"
+	agenda-group "Diseases"//agenda-group "Disease group 3"
+	salience 25
+	no-loop true
+	lock-on-active true
+    when
+        //conditions
+        $s : SymptomList( $simptomi : symptoms  )
+        // obicni i specificni simptomi
+        Number ( $sum : intValue >= 2) from accumulate(
+				SymptomDTO( symCode == "ZAMOR" || symCode == "GUSHI" || symCode == "ONOZG" || symCode == "PROLJ") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				) and Number( $sum2: intValue >= 1 ) from accumulate(
+					SymptomDTO( symCode == "OPORO" || symCode == "TEM14" || symCode == "ANB21") from $simptomi,
+					init ( int count = 0; ),
+					action ( count++; ),
+					result ( count )
+				)
+    then
+        //actions
+        $s.getMostLikelyDisease().remove("HRBUB");
+		$s.getMostLikelyDisease().put("AKBUB", 13000.0);
+		update($s);
+end
